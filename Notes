@@ -15,4 +15,13 @@ Plan:
 #(more ideas)
 - Average position for clusters on the scatter plot for possible telescope direction
 
+########
+Update 1
+21st July 2021
+########
 
+It would appear that the PFDFeatureExtractor.py code has the wrong syntax for Python3
+For example, containting print "...string...." rather than Print("....string....."),
+Such syntax errors will have to be corrected before the code can be used properly in the Python3 environment
+
+Shouldnt take long though, considering most syntax errors are quickly picked up in the editor.
