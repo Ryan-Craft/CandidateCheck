@@ -1,0 +1,18 @@
+##########
+Plan:
+##########
+
+#Extracting:
+- Use feature extractor to extract main data points from the PFD's
+
+#Storing and Organising:
+- Write said data points to CSV files line by line
+- Store CSV files in files labelled by the position?? (or cand indentifier)
+
+#Processing and Data Visualisation:
+- Create period vs DM plots to help identify possible good candidates on a matplotlib scatter plots
+
+#(more ideas)
+- Average position for clusters on the scatter plot for possible telescope direction
+
+
