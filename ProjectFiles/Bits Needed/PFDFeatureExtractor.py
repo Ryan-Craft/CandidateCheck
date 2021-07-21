@@ -43,7 +43,7 @@ from FeatureExtractor import FeatureExtractor
 #
 # ****************************************************************************************************
 
-isintorlong = lambda x: type(x) == type(0) or type(x) == type(0L)
+isintorlong = lambda x: type(x) == type(0) #or type(x) == type(0L)
 
 class PFDFeatureExtractor(FeatureExtractor):
     """                
@@ -540,7 +540,7 @@ class PFDFeatureExtractor(FeatureExtractor):
         kernel = win * self.sinc(xs)
         
         if (0):
-            print "would have plotted."
+            print("would have plotted.")
         return FFT.irfft(FFT.rfft(kernel) * FFT.rfft(comb))
     
     # ****************************************************************************************************
