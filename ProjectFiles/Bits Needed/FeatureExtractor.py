@@ -370,9 +370,9 @@ class FeatureExtractor(Utilities.Utilities):
             ssTot = ((yData-yData.mean())**2).sum()
             rsquared = 1-(ssErr/ssTot )
             
-            print "\n\tSine fit to Pulse profile statistics:"
-            print "\tStandard Error: ", ssErr
-            print "\tTotal Error: ", ssTot
+            print("\n\tSine fit to Pulse profile statistics:")
+            print("\tStandard Error: ", ssErr)
+            print("\tTotal Error: ", ssTot)
             print "\tR-Squared: ", rsquared
             print "\tAmplitude: ",amplitude
             print "\tFrequency: ",str(leastSquaresParameters[0])
