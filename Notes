@@ -25,3 +25,19 @@ For example, containting print "...string...." rather than Print("....string....
 Such syntax errors will have to be corrected before the code can be used properly in the Python3 environment
 
 Shouldnt take long though, considering most syntax errors are quickly picked up in the editor.
+
+########
+Update 2
+########
+
+Majority of syntac errors were print command errors as seen in the previous update.
+However there is one part of the PFDFeatureExtractor.py code that was slightly different.
+
+ "isintorlong = lambda x: type(x) == type(0) or type(x) == type(0L)", Line 46
+
+ The L in type(0L) was throwing an error. Pylance stated that it was expecting a closed parentheses ")" after the zero.
+ After a cursory glance on the internet I found that 0L was likely referring to a type of long integer where
+ the integer contains only zeros?
+ In any case. The long integer type has been dropped since Python 3.0 and therefore I do not think the or command
+ here holds any weight and I will comment it out to allow the code to run.
+
