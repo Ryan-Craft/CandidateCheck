@@ -228,13 +228,12 @@ class PFD(Utilities.Utilities):
             # If candidate file is invalid in some way...
             if(self.isValid()==False):
                 
-                print "Invalid PFD candidate: ",self.cand
+                print("Invalid PFD candidate: ",self.cand)
                 raise Exception("Invalid PFD candidate: PFDFile.py (Line 214).")
             
             # Candidate file is valid.
             else:
-                print "Candidate file valid."
-                self.profile = array(self.getprofile())
+                print("Candidate file valid.", self.profile == array(self.getprofile()))
             
         # Just go directly to feature generation without checks.
         else:
@@ -684,10 +683,10 @@ class PFD(Utilities.Utilities):
             self.features.append(float(sin_fit[3])) # Feature 4.  Sum over residuals.
             
             if(self.debug==True):
-                print "\nFeature 1. Chi-Squared value for sine fit to raw profile = ",sin_fit[0]
-                print "Feature 2. Chi-Squared value for sine-squared fit to amended profile = ",sin_fit[1]
-                print "Feature 3. Difference between maxima = ",sin_fit[2]
-                print "Feature 4. Sum over residuals = ",sin_fit[3]
+                print("\nFeature 1. Chi-Squared value for sine fit to raw profile = ",sin_fit[0])
+                print("Feature 2. Chi-Squared value for sine-squared fit to amended profile = ",sin_fit[1])
+                print("Feature 3. Difference between maxima = ",sin_fit[2])
+                print("Feature 4. Sum over residuals = ",sin_fit[3])
         
         # Get features 5-11
             guassian_fit = self.fe.getGaussianFittings(self.profile)
@@ -701,13 +700,13 @@ class PFD(Utilities.Utilities):
             self.features.append(float(guassian_fit[6]))# Feature 11. Chi squared value from double Gaussian fit to pulse profile.
             
             if(self.debug==True):
-                print "\nFeature 5. Distance between expectation values of Gaussian and fixed Gaussian fits to profile histogram = ", guassian_fit[0]
-                print "Feature 6. Ratio of the maximum values of Gaussian and fixed Gaussian fits to profile histogram = ",guassian_fit[1]
-                print "Feature 7. Distance between expectation values of derivative histogram and profile histogram. = ",guassian_fit[2]
-                print "Feature 8. Full-width-half-maximum (FWHM) of Gaussian fit to pulse profile = ", guassian_fit[3]
-                print "Feature 9. Chi squared value from Gaussian fit to pulse profile = ",guassian_fit[4]
-                print "Feature 10. Smallest FWHM of double-Gaussian fit to pulse profile = ", guassian_fit[5]
-                print "Feature 11. Chi squared value from double Gaussian fit to pulse profile = ", guassian_fit[6]
+                print("\nFeature 5. Distance between expectation values of Gaussian and fixed Gaussian fits to profile histogram = ", guassian_fit[0])
+                print("Feature 6. Ratio of the maximum values of Gaussian and fixed Gaussian fits to profile histogram = ",guassian_fit[1])
+                print("Feature 7. Distance between expectation values of derivative histogram and profile histogram. = ",guassian_fit[2])
+                print("Feature 8. Full-width-half-maximum (FWHM) of Gaussian fit to pulse profile = ", guassian_fit[3])
+                print("Feature 9. Chi squared value from Gaussian fit to pulse profile = ",guassian_fit[4])
+                print("Feature 10. Smallest FWHM of double-Gaussian fit to pulse profile = ", guassian_fit[5])
+                print("Feature 11. Chi squared value from double Gaussian fit to pulse profile = ", guassian_fit[6])
         
 
         # Get features 12-15
@@ -719,10 +718,10 @@ class PFD(Utilities.Utilities):
             self.features.append(float(candidateParameters[3]))# Feature 15. Best pulse width.
             
             if(self.debug==True):
-                print "\nFeature 12. Best period = "         , candidateParameters[0]
-                print "Feature 13. Best S/N value = "        , candidateParameters[1], " Filtered value = ", self.filterFeature(13,float(candidateParameters[1]))
-                print "Feature 14. Best DM value = "         , candidateParameters[2], " Filtered value = ", self.filterFeature(14,float(candidateParameters[2]))
-                print "Feature 15. Best pulse width = "      , candidateParameters[3]
+                print("\nFeature 12. Best period = "         , candidateParameters[0])
+                print("Feature 13. Best S/N value = "        , candidateParameters[1], " Filtered value = ", self.filterFeature(13,float(candidateParameters[1])))
+                print("Feature 14. Best DM value = "         , candidateParameters[2], " Filtered value = ", self.filterFeature(14,float(candidateParameters[2])))
+                print("Feature 15. Best pulse width = "      , candidateParameters[3])
         
         # Get features 16-19        
             DMCurveFitting = self.fe.getDMFittings(self)
@@ -733,10 +732,10 @@ class PFD(Utilities.Utilities):
             self.features.append(float(DMCurveFitting[3]))# Feature 19. Chi squared value from DM curve fit.
             
             if(self.debug==True):
-                print "\nFeature 16. SNR / SQRT( (P-W) / W ) = " , DMCurveFitting[0]
-                print "Feature 17. Difference between fitting factor, Prop, and 1 = " , DMCurveFitting[1]
-                print "Feature 18. Difference between best DM value and optimised DM value from fit, mod(DMfit - DMbest) = ", DMCurveFitting[2], " Filtered value = ", self.filterFeature(18,float(DMCurveFitting[2]))
-                print "Feature 19. Chi squared value from DM curve fit = " , DMCurveFitting[3]
+                print("\nFeature 16. SNR / SQRT( (P-W) / W ) = " , DMCurveFitting[0])
+                print("Feature 17. Difference between fitting factor, Prop, and 1 = " , DMCurveFitting[1])
+                print("Feature 18. Difference between best DM value and optimised DM value from fit, mod(DMfit - DMbest) = ", DMCurveFitting[2], " Filtered value = ", self.filterFeature(18,float(DMCurveFitting[2])))
+                print("Feature 19. Chi squared value from DM curve fit = " , DMCurveFitting[3])
         
         
         # Get features 20-22
@@ -747,13 +746,13 @@ class PFD(Utilities.Utilities):
             self.features.append(float(subbandFeatures[2]))# Feature 22. Sum of correlation coefficients between sub-bands and profile.
             
             if(self.debug==True):
-                print "\nFeature 20. RMS of peak positions in all sub-bands = " , subbandFeatures[0]
-                print "Feature 21. Average correlation coefficient for each pair of sub-bands = " , subbandFeatures[1]
-                print "Feature 22. Sum of correlation coefficients between sub-bands and profile = " , subbandFeatures[2]
+                print("\nFeature 20. RMS of peak positions in all sub-bands = " , subbandFeatures[0])
+                print("Feature 21. Average correlation coefficient for each pair of sub-bands = " , subbandFeatures[1])
+                print("Feature 22. Sum of correlation coefficients between sub-bands and profile = " , subbandFeatures[2])
         
         except Exception as e: # catch *all* exceptions
-            print "Error computing features \n\t", sys.exc_info()[0]
-            print self.format_exception(e)
+            print("Error computing features \n\t", sys.exc_info()[0])
+            print(self.format_exception(e))
             raise Exception("Exception computing 22 features from Thornton, PhD Thesis, Univ. Manchester, 2013.")
         
         return self.features
@@ -847,10 +846,10 @@ class PFD(Utilities.Utilities):
             kurt = self.fe.excess_kurtosis(bins) 
             
             if(self.debug==True):
-                print "\nFeature 1. Mean of the integrated (folded) pulse profile = ",            str(mn)
-                print "Feature 2. Standard deviation of the integrated (folded) pulse profile = ",str(stdev)
-                print "Feature 3. Skewness of the integrated (folded) pulse profile = ",          str(skw)
-                print "Feature 4. Excess Kurtosis of the integrated (folded) pulse profile = ",   str(kurt)
+                print("\nFeature 1. Mean of the integrated (folded) pulse profile = ",            str(mn))
+                print("Feature 2. Standard deviation of the integrated (folded) pulse profile = ",str(stdev))
+                print("Feature 3. Skewness of the integrated (folded) pulse profile = ",          str(skw))
+                print("Feature 4. Excess Kurtosis of the integrated (folded) pulse profile = ",   str(kurt))
                 
             self.features.append(mn)
             self.features.append(stdev)
@@ -867,10 +866,10 @@ class PFD(Utilities.Utilities):
             kurt = self.fe.excess_kurtosis(bins)
             
             if(self.debug==True):
-                print "\nFeature 5. Mean of the integrated SNR-DM Curve = ", str(mn)
-                print "Feature 6. Standard deviation of the SNR-DM Curve = ",str(stdev)
-                print "Feature 7. Skewness of the SNR-DM Curve = ",          str(skw)
-                print "Feature 8. Excess Kurtosis of the SNR-DM Curve = ",   str(kurt)
+                print("\nFeature 5. Mean of the integrated SNR-DM Curve = ", str(mn))
+                print("Feature 6. Standard deviation of the SNR-DM Curve = ",str(stdev))
+                print("Feature 7. Skewness of the SNR-DM Curve = ",          str(skw))
+                print("Feature 8. Excess Kurtosis of the SNR-DM Curve = ",   str(kurt))
                 
             self.features.append(mn)
             self.features.append(stdev)
@@ -878,8 +877,8 @@ class PFD(Utilities.Utilities):
             self.features.append(kurt) 
             
         except Exception as e: # catch *all* exceptions
-            print "Error getting features from PFD file\n\t", sys.exc_info()[0]
-            print self.format_exception(e)
+            print("Error getting features from PFD file\n\t", sys.exc_info()[0])
+            print(self.format_exception(e))
             raise Exception("Exception computing 8 features from Lyon et al.,2015.")
         
         return self.features
