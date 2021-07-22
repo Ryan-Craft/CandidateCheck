@@ -30,7 +30,7 @@ Shouldnt take long though, considering most syntax errors are quickly picked up 
 Update 2
 ########
 
-Majority of syntac errors were print command errors as seen in the previous update.
+Majority of syntax errors were print command errors as seen in the previous update.
 However there is one part of the PFDFeatureExtractor.py code that was slightly different.
 
  "isintorlong = lambda x: type(x) == type(0) or type(x) == type(0L)", Line 46
@@ -38,6 +38,17 @@ However there is one part of the PFDFeatureExtractor.py code that was slightly d
  The L in type(0L) was throwing an error. Pylance stated that it was expecting a closed parentheses ")" after the zero.
  After a cursory glance on the internet I found that 0L was likely referring to a type of long integer where
  the integer contains only zeros?
- In any case. The long integer type has been dropped since Python 3.0 and therefore I do not think the or command
+ In any case, the long integer type has been dropped since Python 3.0 and therefore I do not think the or command
  here holds any weight and I will comment it out to allow the code to run.
 
+########
+Update 3
+
+22/7/2021
+
+It would seem the most important part of the code from the Pulsar Feature Lab is actuall a python code called PFDFile.py
+This is responsible for actually reading information from the PFD files.
+
+It might be possible to just take snippits from this code to read in the PFD files directly and hunt for the important parts with custom code.
+
+########
