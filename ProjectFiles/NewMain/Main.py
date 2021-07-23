@@ -34,6 +34,7 @@ PSEUDO CODE:
 ######
 
 import Utilities as Util
+import Candidate as cand
 
 ######
 # Declare Variables
@@ -73,8 +74,18 @@ print("\nSpecified path for input PFD's: \n",Path, "\n")
 """
 Now that we have a path variable we can take it and use it as both the name of the candidate and the directory for searching for candidates
 
-
 """
+CandName = Path
+
+NewCand = cand.Candidate(Path, CandName)
+
+DataOut = NewCand.getFeatures(3,3, True)
+
+
+
+
+
+
 
 
 
