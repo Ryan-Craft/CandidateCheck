@@ -69,8 +69,19 @@ If a working code is created that can do the bare minimum of readinf the PFD and
 that code to a new branch.
 
 
+########
+Update 5
 
+23/7/2021
 
+########
+
+I have finally got the PulsarFeatureLab Source code to output data to a new CSV file I have created manually.
+The only problem now is that the data being written to the CSV files seems to be a little buggy. DM is usually reported as 0.0 and the profiles being displayed, supposedly
+over 100 bins, do not match that expected based on png files from the test candidates.
+
+Despite this, I am still able to potentially write some code which uses the Source Code from PulsarFeatureLab to collate large amounts of data from many csv's.
+I will persue this on a new branch, in the hopes that eventually the bug where DM is given as 0.0 and the profiles come out 'wonky' will be solves later on. 
 
 
 
