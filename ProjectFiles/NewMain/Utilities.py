@@ -118,6 +118,7 @@ class Utilities(object):
             else:
                 return False
         except IOError:
+            
             return False
     
     # ******************************************************************************************
