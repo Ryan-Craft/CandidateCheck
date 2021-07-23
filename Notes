@@ -46,9 +46,39 @@ Update 3
 
 22/7/2021
 
+########
+
 It would seem the most important part of the code from the Pulsar Feature Lab is actuall a python code called PFDFile.py
 This is responsible for actually reading information from the PFD files.
 
 It might be possible to just take snippits from this code to read in the PFD files directly and hunt for the important parts with custom code.
 
 ########
+Update 4
+
+23/7/2021
+
+########
+
+Due to the many difficulties I am currently having just getting the orignal code to run without error.
+I am downloading a temporary local file to work on my desktop computer with the intention of largely modufying the code so it works only with PFD files.
+
+Using Git atm seems to be slowing me down and I am much more used to the Spyder IDE, which i will use.
+
+If a working code is created that can do the bare minimum of readinf the PFD and writing relevent data to a csv file, I will upload
+that code to a new branch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
