@@ -35,7 +35,7 @@ PSEUDO CODE:
 
 import Utilities as Util
 import Candidate as cand
-
+import os
 ######
 # Declare Variables
 #
@@ -47,34 +47,47 @@ Path = ""
 
 ######
 # User Inputs
-#
+# --- Input directory PATH where pfd files are located
+# --- Output directory  PATH where csv files are to be created, written to and saved
+# --- Need some sort of file path checking system so that there cannot be and IOError
 ######
-
-
 
 print("\n###################### Pulsar Candidate Check ######################\n")
 
 
-#while Bool1 == False:
+# Below input loop stops people from crashing the program by typing incorrect PATH into the program, also allows them to exit if they change their mind
+# Big thanks to the Utlities.py program which already contains file path checking functions, !!!!!!!!!!!!!!!auth cred!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Path = input("Insert file PATH to the folder containing PFD candidates or press ENTER to exit: ")
-Path = str(Path)
-PathObj = Util.Utilities(Path)
-Bool1 = PathObj.dirEx(Path)
+while Bool1 == False:
 
-    #if Path == "": # I am sufficiently aware that this code choice is extremely bad and I should feel bad for making it
-        #Bool1 = True
+    Path = str(input("Insert file PATH to the folder containing PFD candidates or enter 'Exit' to exit: \n"))
+    PathObj = Util.Utilities(Path)
+    Bool1 = PathObj.fileExists(Path)
+
+    if Path == "Exit": 
+        print("\n### Program Exit by User ###\n")
+        os._exit(0)
     
-    #if Bool1 == False:
-        #print("\nSpecified PATH was not found\n")
+    if Bool1 == False and Path !="Exit":
+        print("\nSpecified PATH was not found\n")
+
+######
+# File Reading loop, creating arrays for holding the object data (appending them to a list for later) using candidate.py
+# --- Input directory PATH where pfd files are located
+# --- Output directory  PATH where csv files are to be created, written to and saved
+# --- Need some sort of file path checking system so that there cannot be and IOError
+######
 
 
-print("\nSpecified path for input PFD's: \n",Path, "\n")
 
 """
-Now that we have a path variable we can take it and use it as both the name of the candidate and the directory for searching for candidates
+What I want to happen here is for the program to take the file given in the path variable and do the candidate object operation on each of the
+files in the folder until it terminates. 
 
 """
+
+
+
 CandName = Path
 
 NewCand = cand.Candidate(Path, CandName)
@@ -83,8 +96,12 @@ DataOut = NewCand.getFeatures(3,3, True)
 
 print(DataOut)
 
+"""
+The above commented code worked for getting candidate.py to read data from the pfd file given in the path string
+into an array. Ideally we want the code to go through the whole set of files in a directory where the pfd files are located and create a set of csv files
+corresponding to the name of each pfd file. 
 
-# code has some merit but is also not going the way I want it to fully
+"""
 
 
 
