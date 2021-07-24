@@ -191,9 +191,9 @@ class PFDFeatureExtractor(FeatureExtractor):
                 right_lim += 1
         #print "RL:" + str(right_lim)
         
-        if(self.debug):
-            plt.plot(xData,rot_profile,left_lim,rot_profile[left_lim], 'o',right_lim,rot_profile[right_lim],'o',peak,halfmax_profile,'o')
-            plt.show()
+        #if(self.debug):
+            #plt.plot(xData,rot_profile,left_lim,rot_profile[left_lim], 'o',right_lim,rot_profile[right_lim],'o',peak,halfmax_profile,'o')
+            #plt.show()
 
         self.width = (1.0 * (right_lim - left_lim - 1.0)) / len(rot_profile);
 
@@ -306,10 +306,10 @@ class PFDFeatureExtractor(FeatureExtractor):
         plsq = leastsq(__residuals, p0, args=(xData,yData))
         fit = __evaluate(xData, plsq[0])
 
-        if(self.debug):
-            plt.plot(xData,fit,xData,yData,xData,theo)
-            plt.title("DM Curve, theoretical curve and fit.")
-            plt.show()
+        #if(self.debug):
+            #plt.plot(xData,fit,xData,yData,xData,theo)
+            #plt.title("DM Curve, theoretical curve and fit.")
+            #plt.show()
             
         # Chi square calculation.
         chi_fit,chi_theo = 0,0
