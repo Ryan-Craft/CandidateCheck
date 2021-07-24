@@ -378,7 +378,7 @@ class FeatureExtractor(Utilities.Utilities):
             print("\tFrequency: ",str(leastSquaresParameters[0]))
             print("\tPhi: ",str(leastSquaresParameters[1]))
             print("\tBackground: ",background)
-            plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
+            #plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine fit to Profile")
             plt.show()
         
@@ -471,7 +471,7 @@ class FeatureExtractor(Utilities.Utilities):
             print("\tAmplitude: ",amplitude)
             print("\tFrequency: ",str(leastSquaresParameters[0]))
             print("\tPhi: ",str(leastSquaresParameters[1]))
-            plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
+            #plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine Squared fit to Profile")
             plt.show()
         
