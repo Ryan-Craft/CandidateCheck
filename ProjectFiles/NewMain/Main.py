@@ -37,7 +37,7 @@ import Utilities as Util
 import Candidate as cand
 import os
 import glob
-
+import numpy as np
 
 
 ######
@@ -51,7 +51,7 @@ CandidateList = []
 CandidateNameList = []
 CandidateDataList = []
 ######
-# User Inputs
+##### User Inputs:
 # --- Input directory PATH where pfd files are located
 # --- Output directory  PATH where csv files are to be created, written to and saved
 # --- Need some sort of file path checking system so that there cannot be and IOError
@@ -79,11 +79,11 @@ while Bool1 == False:
         print("\nSpecified PATH was not found\n")
 
 ######
-# File Reading loop, creating arrays for holding the object data (appending them to a list for later) using candidate.py
+##### File Reading loop: creating arrays for holding the object data (appending them to a list for later) using candidate.py
 # --- Loop which navigates to the file path and then creates an object for each file in the folder
 # --- loops appends each candidate object to a list.
 # --- For each object in the list, the array associated with its parameters is written into a unique csv file
-# --- we dont want it to make plots cos it will slow everythin down (plots are disabled in PFDfeatureExtractor and FeatureExtractor)
+# --- we dont want it to make plots because it will slow everythin down (plots are disabled in PFDfeatureExtractor and FeatureExtractor)
 ######
 
 """
@@ -94,11 +94,11 @@ files in the folder until it terminates.
 #Below code modified from StackOverflow: https://stackoverflow.com/questions/18262293/how-to-open-every-file-in-a-folder
 
 CandidatePath = Path
-for filename in glob.glob(os.path.join(CandidatePath,  "*.pfd")):
+for filename in glob.glob(os.path.join(CandidatePath, "*.pfd")):
   with open(filename, 'rb') as f:
-    CandidateName = filename
+    CandidateName = os.path.basename(filename)
     CandidateNameList.append(CandidateName)
-    NewCand = cand.Candidate(CandidateName, CandidateName)
+    NewCand = cand.Candidate(filename, filename)
     CandidateList.append(NewCand)
     CandidateData = NewCand.getFeatures(3,3,True)
     CandidateDataList.append(CandidateData)
@@ -106,4 +106,19 @@ for filename in glob.glob(os.path.join(CandidatePath,  "*.pfd")):
 print(CandidateNameList)
 print(CandidateDataList)
 
-    
+######
+##### File Output: Sends data contanied in the Lists to a CSV file named with the Candidate Name
+# --- Loop that creates a csv file with filename equal to the basename of the pulsar pfd file 
+# --- Use numpy savetxt function to write the data to the csv file
+# --- Continue for all csv files in the list
+# --- 
+######
+
+
+# The below code uses os path functions found on note.nkmk.me: https://note.nkmk.me/en/python-os-basename-dirname-split-splitext/
+# and from Delft Stack: https://www.delftstack.com/howto/python/python-write-array-to-csv/#:~:text=We%20can%20write%20an%20array%20to%20a%20CSV%20file%20by,to_csv()%20method.
+index = 0
+for i in CandidateList:
+    BaseNameNoExt = os.path.splitext(os.path.basename(CandidateNameList[index]))[0]
+    np.savetxt(str(BaseNameNoExt) + ".csv", CandidateDataList[index], delimiter=",")
+    index = index +1
