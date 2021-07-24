@@ -47,6 +47,7 @@ import glob
 
 Bool1 = False
 Path = ""
+CandidateList = []
 CandidateNameList = []
 CandidateDataList = []
 ######
@@ -95,12 +96,10 @@ files in the folder until it terminates.
 CandidatePath = Path
 for filename in glob.glob(os.path.join(CandidatePath,  "*.pfd")):
   with open(filename, 'rb') as f:
-    text = f.readlines()
-    print (filename)
-    print (len(text))
     CandidateName = filename
     CandidateNameList.append(CandidateName)
     NewCand = cand.Candidate(CandidateName, CandidateName)
+    CandidateList.append(NewCand)
     CandidateData = NewCand.getFeatures(3,3,True)
     CandidateDataList.append(CandidateData)
 
