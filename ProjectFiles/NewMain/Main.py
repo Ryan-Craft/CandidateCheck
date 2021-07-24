@@ -47,9 +47,8 @@ import glob
 
 Bool1 = False
 Path = ""
-CandidateName = ""
-
-
+CandidateNameList = []
+CandidateDataList = []
 ######
 # User Inputs
 # --- Input directory PATH where pfd files are located
@@ -94,17 +93,18 @@ files in the folder until it terminates.
 #Below code modified from StackOverflow: https://stackoverflow.com/questions/18262293/how-to-open-every-file-in-a-folder
 
 CandidatePath = Path
-for filename in glob.glob(os.path.join(CandidatePath, '*.pfd')):
+for filename in glob.glob(os.path.join(CandidatePath,  "*.pfd")):
   with open(filename, 'rb') as f:
     text = f.readlines()
     print (filename)
-    print (text)
+    print (len(text))
+    CandidateName = filename
+    CandidateNameList.append(CandidateName)
+    NewCand = cand.Candidate(CandidateName, CandidateName)
+    CandidateData = NewCand.getFeatures(3,3,True)
+    CandidateDataList.append(CandidateData)
 
+print(CandidateNameList)
+print(CandidateDataList)
 
-
-
-
-
-
-
-
+    
