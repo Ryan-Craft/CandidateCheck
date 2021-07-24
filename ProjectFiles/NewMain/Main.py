@@ -55,18 +55,18 @@ Path = ""
 print("\n###################### Pulsar Candidate Check ######################\n")
 
 
-while Bool1 == False:
+#while Bool1 == False:
 
-    Path = input("Insert file PATH to the folder containing PFD candidates or press ENTER to exit: ")
-    Path = str(Path)
-    PathObj = Util.Utilities(Path)
-    Bool1 = PathObj.dirExists(Path)
+Path = input("Insert file PATH to the folder containing PFD candidates or press ENTER to exit: ")
+Path = str(Path)
+PathObj = Util.Utilities(Path)
+Bool1 = PathObj.dirEx(Path)
 
-    if Path == "": # I am sufficiently aware that this code choice is extremely bad and I should feel bad for making it
-        Bool1 = True
+    #if Path == "": # I am sufficiently aware that this code choice is extremely bad and I should feel bad for making it
+        #Bool1 = True
     
-    if Bool1 == False:
-        print("\nSpecified PATH was not found\n")
+    #if Bool1 == False:
+        #print("\nSpecified PATH was not found\n")
 
 
 print("\nSpecified path for input PFD's: \n",Path, "\n")
@@ -81,10 +81,10 @@ NewCand = cand.Candidate(Path, CandName)
 
 DataOut = NewCand.getFeatures(3,3, True)
 
+print(DataOut)
 
 
-
-
+# code has some merit but is also not going the way I want it to fully
 
 
 
