@@ -46,10 +46,13 @@ import numpy as np
 ######
 
 Bool1 = False
+Bool2 = False
 Path = ""
 CandidateList = []
 CandidateNameList = []
 CandidateDataList = []
+
+
 ######
 ##### User Inputs:
 # --- Input directory PATH where pfd files are located
@@ -67,16 +70,99 @@ print("\n###################### Pulsar Candidate Check ######################\n"
 
 while Bool1 == False:
 
-    Path = str(input("Insert file PATH to the folder containing PFD candidates or enter 'Exit' to exit: \n"))
+    Path = str(input("Insert file PATH to the folder containing PFD candidates or enter 'exit' to exit: \n"))
     PathObj = Util.Utilities(Path)
     Bool1 = PathObj.dirExists(Path)
 
-    if Path == "Exit": 
+    if Path == "exit": 
         print("\n### Program Exit by User ###\n")
         os._exit(0)
     
     if Bool1 == False and Path !="Exit":
         print("\nSpecified PATH was not found\n")
+
+
+
+
+"""
+PSEUDO CODE: Designating the file PATH for the CSV's
+
+Ask the user if they are using an existing folder, want to create a new local folder or default folder for the output folder or exit
+
+If the user selects an existing folder, use loop similar to the input folder loop above to get the correct input from the user and
+
+Elif the user decides to create a new folder:
+    prompt the user to input a valid name for the folder
+    use python code to create the directory in the local file with name specified by the user
+
+    Use utilities to check that the file path exists otherwise, throw and error and create a default folder
+
+Elif the user decides to use the default file location, create a default folder in the local dir
+
+"""
+while Bool2 == False:
+    Select = str(input("\n Send Output to: Existsing folder (E), New Local Folder (N) or Default Folder (D)\n"))
+
+    if Select == "E":
+        OutPath = str(input("Insert file PATH to the folder containing PFD candidates or enter 'exit' to exit: \n"))
+        PathObj1 = Util.Utilities(OutPath)
+        Bool2 = PathObj1.dirExists(OutPath)
+
+        if Path == "exit": 
+            print("\n### Program Exit by User ###\n")
+            os._exit(0)
+    
+        else:
+            print("\nSpecified PATH was not found or 'exit' command was not input correctly\n")
+
+
+    elif Select == "N":
+        try:
+            OutPath = str(input("Enter the name of the Folder to be created in the local directory or exit (exit): "))
+            
+            if OutPath == "exit": 
+                print("\n### Program Exit by User ###\n")
+                os._exit(0)
+
+            else:
+                print()
+            
+            os.mkdir(OutPath)
+            Bool2 = True
+
+        except FileExistsError as err:
+            print(err)
+            print("\n That file name already exists, please try a different one... \n") 
+
+        print("Folder created successfully!")
+        
+    elif Select == "D":
+        DefaultNo = 0
+        try:
+            DefaultName = 'Default_Out_File'
+            os.mkdir(DefaultName)
+            Bool2 = True
+
+        except FileExistsError as err:
+            print(err)
+            DefaultNo = DefaultNo + 1
+            print("\n Default Folder already exists, creating: 'Default_Out_File' " + str(DefaultNo))
+        
+    else:
+        print("\n That command is not listed, please try again or exit the program... \n")
+        Bool2 = False
+            
+
+
+
+print("\n### Output PATH Selected: ", OutPath, "\n")
+
+
+
+
+########try:
+
+
 
 ######
 ##### File Reading loop: creating arrays for holding the object data (appending them to a list for later) using candidate.py
@@ -118,7 +204,11 @@ print(CandidateDataList)
 # The below code uses os path functions found on note.nkmk.me: https://note.nkmk.me/en/python-os-basename-dirname-split-splitext/
 # and from Delft Stack: https://www.delftstack.com/howto/python/python-write-array-to-csv/#:~:text=We%20can%20write%20an%20array%20to%20a%20CSV%20file%20by,to_csv()%20method.
 index = 0
+cwd = os.getcwd()
+out = os.chdir(OutPath)
 for i in CandidateList:
     BaseNameNoExt = os.path.splitext(os.path.basename(CandidateNameList[index]))[0]
-    np.savetxt(str(BaseNameNoExt) + ".csv", CandidateDataList[index], delimiter=",")
-    index = index +1
+    
+    np.savetxt(str(BaseNameNoExt) + ".csv", CandidateDataList[index], delimiter=",") #Needs to have user input
+    index = index + 1
+os.chdir(cwd)
