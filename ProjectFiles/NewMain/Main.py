@@ -38,6 +38,7 @@ import Candidate as cand
 import os
 import glob
 import numpy as np
+import time
 
 
 ######
@@ -45,13 +46,15 @@ import numpy as np
 #
 ######
 
+localTime = time.asctime( time.localtime(time.time()))
+
 Bool1 = False
 Bool2 = False
 Path = ""
 CandidateList = []
 CandidateNameList = []
 CandidateDataList = []
-
+DefaultNo = 0
 
 ######
 ##### User Inputs:
@@ -139,7 +142,7 @@ while Bool2 == False:
     elif Select == "D":
         
         try:
-            DefaultNo = 0
+            
             OutPath = 'Default_Out_File'
             os.mkdir(OutPath)
             
@@ -147,11 +150,10 @@ while Bool2 == False:
 
         except FileExistsError as err:
             print(err)
-            DefaultNo = DefaultNo + 1
-            OutPath = 'Default_Out_File ' + str(DefaultNo)
+            OutPath = 'Default_Out_File ' + 'str(localTime)'
             os.mkdir(OutPath)
-            print("\n Default Folder already exists, creating: 'Default_Out_File " + str(DefaultNo), "'")
-            
+            #print("\n Default Folder already exists, creating: 'Default_Out_File " + str(localTime), "'")
+            Bool2 = True
         
     else:
         print("\n That command is not listed, please try again or exit the program... \n")
@@ -184,6 +186,8 @@ files in the folder until it terminates.
 """
 #Below code modified from StackOverflow: https://stackoverflow.com/questions/18262293/how-to-open-every-file-in-a-folder
 
+startTime = time.time()
+
 CandidatePath = Path
 for filename in glob.glob(os.path.join(CandidatePath, "*.pfd")):
   with open(filename, 'rb') as f:
@@ -195,7 +199,7 @@ for filename in glob.glob(os.path.join(CandidatePath, "*.pfd")):
     CandidateDataList.append(CandidateData)
 
 print(CandidateNameList)
-print(CandidateDataList)
+#print(CandidateDataList)
 
 ######
 ##### File Output: Sends data contanied in the Lists to a CSV file named with the Candidate Name
@@ -216,3 +220,7 @@ for i in CandidateList:
     np.savetxt(str(BaseNameNoExt) + ".csv", CandidateDataList[index], delimiter=",") #Needs to have user input
     index = index + 1
 os.chdir(cwd)
+
+endTime = time.time()
+elapsedTime = (endTime - startTime)
+print(elapsedTime)

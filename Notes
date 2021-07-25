@@ -122,6 +122,25 @@ To solve these issues I am going to branch the current location into a new branc
 the original copy of this code.
 
 
+########
+Update 7
+
+25/7/2021
+
+########
+
+
+After stopping plots from being produced I decided that it would be interesting to find out how long it takes for the program to perform its task for 20 or so files.
+
+In doing this I downloaded many different files from the folders i was given. It happens to be the case that these folders are giving values for the DM but there are some files that
+throw a ZeroDevisionError when computing the DM as well as the prevous type of file producing a zero value for the DM consistently, even for many different files.
+
+I do not know why this is happening but I will speak with Sammy McSweeny about it tomorrow and see if there is any merit in continuing this endeavor
+
+
+
+
+
 
 
 
