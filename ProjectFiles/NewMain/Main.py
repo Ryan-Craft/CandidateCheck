@@ -137,16 +137,21 @@ while Bool2 == False:
         print("Folder created successfully!")
         
     elif Select == "D":
-        DefaultNo = 0
+        
         try:
-            DefaultName = 'Default_Out_File'
-            os.mkdir(DefaultName)
+            DefaultNo = 0
+            OutPath = 'Default_Out_File'
+            os.mkdir(OutPath)
+            
             Bool2 = True
 
         except FileExistsError as err:
             print(err)
             DefaultNo = DefaultNo + 1
-            print("\n Default Folder already exists, creating: 'Default_Out_File' " + str(DefaultNo))
+            OutPath = 'Default_Out_File ' + str(DefaultNo)
+            os.mkdir(OutPath)
+            print("\n Default Folder already exists, creating: 'Default_Out_File " + str(DefaultNo), "'")
+            
         
     else:
         print("\n That command is not listed, please try again or exit the program... \n")

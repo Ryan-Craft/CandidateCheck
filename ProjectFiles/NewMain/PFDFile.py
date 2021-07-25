@@ -257,7 +257,7 @@ class PFD(Utilities.Utilities):
         Returns:
         The candidate profile data (an array) scaled to within the range [0,255].
         """
-        
+        #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Marked as the location of a possible bug in the profile plot!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #if not self.__dict__.has_key('subdelays'):
             #self.dedisperse()
         if not 'subdelays' in self.__dict__:
@@ -265,12 +265,13 @@ class PFD(Utilities.Utilities):
             
         normprof = self.sumprof - min(self.sumprof)
         s = normprof / mean(normprof)
-        
+        """
         if(self.debug):
             plt.plot(s)
             plt.title("Profile.")
             plt.show()
-            
+        """  
+        
         return self.scale(s)
     
     # ****************************************************************************************************

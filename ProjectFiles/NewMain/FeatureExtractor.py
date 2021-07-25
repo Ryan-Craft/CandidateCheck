@@ -378,9 +378,9 @@ class FeatureExtractor(Utilities.Utilities):
             print("\tFrequency: ",str(leastSquaresParameters[0]))
             print("\tPhi: ",str(leastSquaresParameters[1]))
             print("\tBackground: ",background)
-            #plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
+            plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine fit to Profile")
-            plt.show()
+            #plt.show()
         
         #return leastSquaresParameters[0], chisq*pow(maxima,4)/100000000., fit, xData, yData
         # I've commented out the return statement above, as only the chi-squared value is used.
@@ -473,7 +473,7 @@ class FeatureExtractor(Utilities.Utilities):
             print("\tPhi: ",str(leastSquaresParameters[1]))
             #plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine Squared fit to Profile")
-            plt.show()
+            #plt.show()
         
         
         #return leastSquaresParameters[0], chisq / pow(float(maxima),4), fit, xData, yData
@@ -561,7 +561,7 @@ class FeatureExtractor(Utilities.Utilities):
             center = (bins[:-1] + bins[1:]) / 2
             plt.bar(center, hist, align='center')
             plt.title("Histogram of derivative dy")
-            plt.show()
+            #plt.show()
             
                 
         histogram_profile = histogram(profile,self.histogramBins) # Calculates a histogram of the profile data.
@@ -582,7 +582,7 @@ class FeatureExtractor(Utilities.Utilities):
             center = (bins[:-1] + bins[1:]) / 2
             plt.bar(center, hist, align='center')
             plt.title("Histogram of profile")
-            plt.show()
+            #plt.show()
             
         
         # Here gf refers to Gaussian fit.
