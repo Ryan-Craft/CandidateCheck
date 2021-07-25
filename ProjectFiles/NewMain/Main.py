@@ -208,7 +208,6 @@ cwd = os.getcwd()
 out = os.chdir(OutPath)
 for i in CandidateList:
     BaseNameNoExt = os.path.splitext(os.path.basename(CandidateNameList[index]))[0]
-    
     np.savetxt(str(BaseNameNoExt) + ".csv", CandidateDataList[index], delimiter=",") #Needs to have user input
     index = index + 1
 os.chdir(cwd)

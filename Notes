@@ -83,6 +83,41 @@ over 100 bins, do not match that expected based on png files from the test candi
 Despite this, I am still able to potentially write some code which uses the Source Code from PulsarFeatureLab to collate large amounts of data from many csv's.
 I will persue this on a new branch, in the hopes that eventually the bug where DM is given as 0.0 and the profiles come out 'wonky' will be solves later on. 
 
+########
+Update 6
+
+25/7/2021
+
+########
+
+The DM and profile bug mentioned above are both still issues but I have added functionality to the code with the hopes that the above problems will be solved
+soon, perhaps after consultation with some of the nice people working at the ICRAR pulsar research group (I like to call them the 'Spinny Star People'). 
+
+As for now, the code can accept user input for the location of the directory containing pfd files, can accept user designated output file path for csv or name and create
+a local file for easy record keeping and general tidyness of the file system (its also more convenient).
+
+The code as of yet does not allow the user to select what features they want to be extracted. I was unsure what ones would be particularly useful, but I was aware
+that the data containing period, DM, FWHM and other reduced chi information would be useful. Especially considering that I am personally interested in seeing what results
+from doing a scatter plot of DM vs Period for larger numbers of candidates. 
+
+If im very good I wonder if it could be possible to plot the data in a 3D space. I could plot DM vs Period vs Position, with position on the Z axis.
+Perhapse that could give some insight into how far away detections of candidates are being made from real positions or average positions. 
+Maybe insight into the location of side lobes of the main beam?? Of course, I'm just thinking out loud (or on paper) but best write these things here before I forget.
+
+More importantly here is a list of the current issues in order of most annoying;
+
+1. plots of data keep showing up, which is annoying as it makes code execution take longer. I want to know how fast the code can extract the
+   data from each of these pfd's so i know if it will be worth doing larger amounts of them or if i will have to change how im doing things.
+
+2. One of the most important data points, the best DM, is given as Zero for two candidates that ive looked at, even though their data sheets say that they are clearly non-zero
+
+3. The profile plots being output do not at all match what I was expecting. Im assuming the profile plot is supposed to look like the pulse profile plot that I see
+    on the candidate data sheets, but it does not. Whilst I am not particularly interested in getting those plots just yet, it indicates to me that something is going wrong
+    in the source code, likely linked to the issues I'm having with DM. 
+
+4. The user input system does not account for lowercase letter selection
+
+
 
 
 
