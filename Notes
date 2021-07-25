@@ -118,7 +118,8 @@ More importantly here is a list of the current issues in order of most annoying;
 4. The user input system does not account for lowercase letter selection
 
 
-
+To solve these issues I am going to branch the current location into a new branch (like a sub branch?) and work on it from there to preserve
+the original copy of this code.
 
 
 
