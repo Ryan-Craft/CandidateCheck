@@ -124,7 +124,7 @@ class PFD(Utilities.Utilities):
         test = infile.read(16)
         has_posn = 1
         for ii in range(16):
-            if test[ii] not in [0,1,2,3,4,5,6,7,8,9]: #'0123456789:.-\0':
+            if test[ii] not in ['0','1','2','3','4','5','6','7','8','9',':','.','-',]: #'0123456789:.-\0':
                 has_posn = 0
                 break
         ### 

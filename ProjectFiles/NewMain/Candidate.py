@@ -121,7 +121,8 @@ class Candidate:
         
         The candidate features as an array of floats.
         """  
-        
+        #!!!!!!!!!!! IMPORTANT !!!!!!!!!!!!
+        # Call PFD directly in 
         #if(".pfd" in self.candidateName and candidate_type == 3):
         c = pfd.PFD(verbose,self.candidateName)
         self.features = c.computeFeatures(feature_type)

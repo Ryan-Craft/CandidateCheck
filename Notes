@@ -137,6 +137,17 @@ throw a ZeroDevisionError when computing the DM as well as the prevous type of f
 
 I do not know why this is happening but I will speak with Sammy McSweeny about it tomorrow and see if there is any merit in continuing this endeavor
 
+########
+Update 7
+
+25/7/2021
+
+########
+
+After presenting work to Sammy, it has been decided that using the candidate.py code may not be necessary as
+it seems to be returning data which is processed in a way much less relevent/useful to us. 
+
+
 
 
 
