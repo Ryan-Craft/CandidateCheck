@@ -40,8 +40,8 @@ from numpy import std
 import matplotlib.pyplot as plt
 
 # Custom file Imports:
-import Utilities
-from PFDFeatureExtractor import PFDFeatureExtractor
+from pfd_extractor import Utilities
+from pfd_extractor.PFDFeatureExtractor import PFDFeatureExtractor
 
 # ****************************************************************************************************
 #

@@ -35,7 +35,7 @@ from scipy import stats  # BWS
 import matplotlib.pyplot as plt
 
 # Custom file Imports:
-from FeatureExtractor import FeatureExtractor
+from pfd_extractor.FeatureExtractor import FeatureExtractor
 
 # ****************************************************************************************************
 #
