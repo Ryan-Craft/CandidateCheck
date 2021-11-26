@@ -8,6 +8,7 @@ from subprocess import check_output
 reqs = ['numpy>=1.13.3',
         'matplotlib>=2.1.0',
         'scipy',
+        'p_tqdm',
         ]
 
 setup(name="pfd_extractor",
