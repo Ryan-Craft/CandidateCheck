@@ -161,7 +161,7 @@ class Utilities(object):
         """
         
         if(self.debug):
-            print(message , parameter)
+            print (message , parameter)
             
     # ******************************************************************************************
     
@@ -182,7 +182,7 @@ class Utilities(object):
             for p in parameters:
                 output+=str(p)
                 
-            print(output)
+            print (output)
             
     # ******************************************************************************************
             

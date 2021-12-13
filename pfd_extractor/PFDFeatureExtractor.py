@@ -35,7 +35,7 @@ from scipy import stats  # BWS
 import matplotlib.pyplot as plt
 
 # Custom file Imports:
-from FeatureExtractor import FeatureExtractor
+from pfd_extractor.FeatureExtractor import FeatureExtractor
 
 # ****************************************************************************************************
 #
@@ -43,7 +43,7 @@ from FeatureExtractor import FeatureExtractor
 #
 # ****************************************************************************************************
 
-isintorlong = lambda x: type(x) == type(0) #or type(x) == type(0L)
+isintorlong = lambda x: type(x) == type(0)
 
 class PFDFeatureExtractor(FeatureExtractor):
     """                
@@ -540,7 +540,7 @@ class PFDFeatureExtractor(FeatureExtractor):
         kernel = win * self.sinc(xs)
         
         if (0):
-            print("would have plotted.")
+            print ("would have plotted.")
         return FFT.irfft(FFT.rfft(kernel) * FFT.rfft(comb))
     
     # ****************************************************************************************************

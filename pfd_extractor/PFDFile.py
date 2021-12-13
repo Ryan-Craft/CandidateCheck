@@ -1,11 +1,11 @@
 """
 
 **************************************************************************
-| PHCXSKASAFile.py                                                            |
+| PFDFile.py                                                             |
 **************************************************************************
 | Description:                                                           |
 |                                                                        |
-| Represents an individual PHCX candidate. This code runs on python      |
+| Represents an individual PFD candidate. This code runs on python       |
 | 2.4 or later.                                                          |
 **************************************************************************
 | Author: Rob Lyon                                                       |
@@ -15,20 +15,33 @@
 
 """
 
-# Numpy/Scipy Imports:
-from numpy import array
-from numpy import std
-from numpy import mean
-
 # Standard library Imports:
-import gzip,sys
+import struct, sys
 
-# XML processing Imports:
-from xml.dom import minidom
+# Numpy Imports:
+from numpy import array
+from numpy import asarray
+from numpy import concatenate
+from numpy import floor
+from numpy import fabs
+from numpy import fromfile
+from numpy import reshape
+from numpy import float64
+from numpy import arange
+from numpy import add
+from numpy import mean
+from numpy import zeros
+from numpy import shape
+from numpy import sum
+from numpy import sqrt
+from numpy import std
+
+# For plotting fits etc.
+import matplotlib.pyplot as plt
 
 # Custom file Imports:
-import Utilities
-from PHCXFeatureExtractor import PHCXFeatureExtractor
+from pfd_extractor import Utilities
+from pfd_extractor.PFDFeatureExtractor import PFDFeatureExtractor
 
 # ****************************************************************************************************
 #
@@ -36,7 +49,7 @@ from PHCXFeatureExtractor import PHCXFeatureExtractor
 #
 # ****************************************************************************************************
 
-class PHCXSKASA(Utilities.Utilities):
+class PFD(Utilities.Utilities):
     """
     Represents an individual pulsar candidate.
 
@@ -48,7 +61,7 @@ class PHCXSKASA(Utilities.Utilities):
     #
     # ****************************************************************************************************
 
-    def __init__(self,debugFlag,candidateName,xmlProfileIndex):
+    def __init__(self,debugFlag,candidateName):
         """
         Default constructor.
 
@@ -59,27 +72,25 @@ class PHCXSKASA(Utilities.Utilities):
                            during execution.
         candidateName -    the name for the candidate, typically the file path.
         """
-        #Utilities.Utilities.__init__(self,debugFlag)
-        super(PHCXSKASA, self).__init__(debugFlag)
-        self.fe = PHCXFeatureExtractor(self.debug)
+        Utilities.Utilities.__init__(self,debugFlag)
         self.epsilon = 0.000005 # Used during feature comparison.
 
-        self.cand = candidateName           # The name of the candidate.
-        self.profileIndex = xmlProfileIndex # A phcx file specific variable, used to identify the section of the xml data to read.
-        self.profile      = []              # The decimal profile data.
-        self.rawdata      = []              # The raw data read in from the file, in this case xml.
-        self.features     = []
-
-        # Add candidate type here! Then do different things based on candidate type.
-        # Or add new monika specific PHCX file.
+        self.cand     = candidateName
+        self.features = []
+        self.fe       = PFDFeatureExtractor(self.debug)
         self.load()
 
     # ****************************************************************************************************
 
     def load(self):
         """
-        Attempts to load candidate profile data from the file, performs file consistency checks if the
-        debug flag is set to true.
+        Attempts to load candidate data from the file, performs file consistency checks if the
+        debug flag is set to true. Much of this code has been extracted from PRESTO by Scott Ransom.
+
+        Please see:
+
+        http://www.cv.nrao.edu/~sransom/presto/
+        https://github.com/scottransom/presto
 
         Parameters:
         N/A
@@ -87,201 +98,382 @@ class PHCXSKASA(Utilities.Utilities):
         Return:
         N/A
         """
+        infile = open(self.cand, "rb")
 
-        # Read data directly from phcx file.
-        if(".gz" in self.cand):
-            data = gzip.open(self.cand,'rb')
+        # The code below appears to have been taken from Presto. So it maybe
+        # helpful to look at the Presto github repository (see above) to get a better feel
+        # for what this code is doing. I certainly have no idea what is going on. Although
+        # data is being unpacked in a specific order.
+
+        swapchar = '<' # this is little-endian
+        data = infile.read(5*4)
+        testswap = struct.unpack(swapchar+"i"*5, data)
+        # This is a hack to try and test the endianness of the data.
+        # None of the 5 values should be a large positive number.
+
+        if (fabs(asarray(testswap))).max() > 100000:
+            swapchar = '>' # this is big-endian
+        (self.numdms, self.numperiods, self.numpdots, self.nsub, self.npart) = struct.unpack(swapchar+"i"*5, data)
+        (self.proflen, self.numchan, self.pstep, self.pdstep, self.dmstep, self.ndmfact, self.npfact) = struct.unpack(swapchar+"i"*7, infile.read(7*4))
+        self.filenm = infile.read(struct.unpack(swapchar+"i", infile.read(4))[0])
+        self.candnm = infile.read(struct.unpack(swapchar+"i", infile.read(4))[0])
+        self.telescope = infile.read(struct.unpack(swapchar+"i", infile.read(4))[0])
+        self.pgdev = infile.read(struct.unpack(swapchar+"i", infile.read(4))[0])
+
+        test = infile.read(16)
+        #test.decode("utf-8")
+        has_posn = 1
+        for ii in range(16):
+
+            if test.decode("utf-8")[ii] not in '0123456789:.-\0':
+                has_posn = 0
+                break
+
+        if has_posn:
+            self.rastr = test[:test.find('\0'.encode())]
+            test = infile.read(16)
+            self.decstr = test[:test.find('\0'.encode())]
+            (self.dt, self.startT) = struct.unpack(swapchar+"dd", infile.read(2*8))
         else:
-            data = infile = open(self.cand, "rb")
+            self.rastr = "Unknown"
+            self.decstr = "Unknown"
+            (self.dt, self.startT) = struct.unpack(swapchar+"dd", test)
 
-        self.rawdata = minidom.parse(data) # strip off xml data
-        data.close()
+        (self.endT, self.tepoch, self.bepoch, self.avgvoverc, self.lofreq,self.chan_wid, self.bestdm) = struct.unpack(swapchar+"d"*7, infile.read(7*8))
+        (self.topo_pow, tmp) = struct.unpack(swapchar+"f"*2, infile.read(2*4))
+        (self.topo_p1, self.topo_p2, self.topo_p3) = struct.unpack(swapchar+"d"*3,infile.read(3*8))
+        (self.bary_pow, tmp) = struct.unpack(swapchar+"f"*2, infile.read(2*4))
+        (self.bary_p1, self.bary_p2, self.bary_p3) = struct.unpack(swapchar+"d"*3,infile.read(3*8))
+        (self.fold_pow, tmp) = struct.unpack(swapchar+"f"*2, infile.read(2*4))
+        (self.fold_p1, self.fold_p2, self.fold_p3) = struct.unpack(swapchar+"d"*3,infile.read(3*8))
+        (self.orb_p, self.orb_e, self.orb_x, self.orb_w, self.orb_t, self.orb_pd,self.orb_wd) = struct.unpack(swapchar+"d"*7, infile.read(7*8))
+        self.dms = asarray(struct.unpack(swapchar+"d"*self.numdms,infile.read(self.numdms*8)))
 
-        # Explicit debugging required.
+        if self.numdms==1:
+            self.dms = self.dms[0]
+
+        self.periods = asarray(struct.unpack(swapchar + "d" * self.numperiods,infile.read(self.numperiods*8)))
+        self.pdots = asarray(struct.unpack(swapchar + "d" * self.numpdots,infile.read(self.numpdots*8)))
+        self.numprofs = self.nsub * self.npart
+
+        if (swapchar=='<'):  # little endian
+            self.profs = zeros((self.npart, self.nsub, self.proflen), dtype='d')
+            for ii in range(self.npart):
+                for jj in range(self.nsub):
+                    try:
+                        self.profs[ii,jj,:] = fromfile(infile, float64, self.proflen)
+                    except Exception: # Catch *all* exceptions.
+                        pass
+                        #print ""
+        else:
+            self.profs = asarray(struct.unpack(swapchar+"d"*self.numprofs*self.proflen,infile.read(self.numprofs*self.proflen*8)))
+            self.profs = reshape(self.profs, (self.npart, self.nsub, self.proflen))
+
+        self.binspersec = self.fold_p1 * self.proflen
+        self.chanpersub = self.numchan / self.nsub
+        self.subdeltafreq = self.chan_wid * self.chanpersub
+        self.hifreq = self.lofreq + (self.numchan-1) * self.chan_wid
+        self.losubfreq = self.lofreq + self.subdeltafreq - self.chan_wid
+        self.subfreqs = arange(self.nsub, dtype='d')*self.subdeltafreq + self.losubfreq
+        self.subdelays_bins = zeros(self.nsub, dtype='d')
+        self.killed_subbands = []
+        self.killed_intervals = []
+        self.pts_per_fold = []
+
+        # Note: a foldstats struct is read in as a group of 7 doubles
+        # the correspond to, in order:
+        # numdata, data_avg, data_var, numprof, prof_avg, prof_var, redchi
+        self.stats = zeros((self.npart, self.nsub, 7), dtype='d')
+
+        for ii in range(self.npart):
+            currentstats = self.stats[ii]
+
+            for jj in range(self.nsub):
+                if (swapchar=='<'):  # little endian
+                    try:
+                        currentstats[jj] = fromfile(infile, float64, 7)
+                    except Exception: # Catch *all* exceptions.
+                        pass
+                        #print ""
+                else:
+                    try:
+                        currentstats[jj] = asarray(struct.unpack(swapchar+"d"*7,infile.read(7*8)))
+                    except Exception: # Catch *all* exceptions.
+                        pass
+                        #print ""
+
+            self.pts_per_fold.append(self.stats[ii][0][0])  # numdata from foldstats
+
+        self.start_secs = add.accumulate([0]+self.pts_per_fold[:-1])*self.dt
+        self.pts_per_fold = asarray(self.pts_per_fold)
+        self.mid_secs = self.start_secs + 0.5*self.dt*self.pts_per_fold
+
+        if (not self.tepoch==0.0):
+            self.start_topo_MJDs = self.start_secs/86400.0 + self.tepoch
+            self.mid_topo_MJDs = self.mid_secs/86400.0 + self.tepoch
+
+        if (not self.bepoch==0.0):
+            self.start_bary_MJDs = self.start_secs/86400.0 + self.bepoch
+            self.mid_bary_MJDs = self.mid_secs/86400.0 + self.bepoch
+
+        self.Nfolded = add.reduce(self.pts_per_fold)
+        self.T = self.Nfolded*self.dt
+        self.avgprof = (self.profs/self.proflen).sum()
+        self.varprof = self.calc_varprof()
+        self.barysubfreqs = self.subfreqs
+        infile.close()
+
+        # If explicit debugging required.
         if(self.debug):
 
             # If candidate file is invalid in some way...
             if(self.isValid()==False):
 
-                print "Invalid PHCX SKA SA candidate: ",self.cand
-                raise Exception("Invalid PHCX SKA SA candidate: PHCXSKASAFile.py (Line 106).")
+                print ("Invalid PFD candidate: ",self.cand)
+                raise Exception("Invalid PFD candidate: PFDFile.py (Line 214).")
 
             # Candidate file is valid.
             else:
-                print "\tCandidate file valid."
-                # Extracts data from this part of a candidate file. It contains details
-                # of the profile in hexadecimal format. The data is extracted from the part
-                # of the candidate file which resembles:
-                # <Profile nBins='128' format='02X' min='-0.000310' max='0.000519'>
-                #
-                # Call to ph.getprofile() below will return a LIST data type of 128 integer data points.
-                # Phcx files actually contain two profile sections (i.e. there are two <Profile>...</Profile>
-                # sections in the file) which can be read using the XML dom code by specifying the index of the
-                # profile section to use. The first section profileIndex = 0 pertains to a profile obtained after the FFT,
-                # the second, profileIndex = 1, to a profile that has been period and DM searched using PDMPD. We choose 1 here
-                # as it should have a better SNR .... maybe.
+                print ("Candidate file valid.")
                 self.profile = array(self.getprofile())
 
         # Just go directly to feature generation without checks.
         else:
             self.out( "Candidate validity checks skipped.","")
-            # See comment above to understand what happens with this call.
             self.profile = array(self.getprofile())
 
     # ****************************************************************************************************
 
     def getprofile(self):
         """
-        Returns a list of 128 integer data points representing a pulse profile.
-        Takes two parameters: the xml data and the profile index to use.
-        The xml data contains two distinct profile sections (i.e. there are two <Profile>...</Profile>
-        sections in the file) which are indexed. The first section with profileIndex = 0 pertains to a
-        profile obtained after the FFT, the second, profileIndex = 1, to a profile that has been period
-        and DM searched using PDMPD.
+        Obtains the profile data from the candidate file.
 
         Parameters:
         N/A
 
         Returns:
-        A list data type containing 128 integer data points.
+        The candidate profile data (an array) scaled to within the range [0,255].
         """
-        # First obtain desired block of xml data.
-        block = self.rawdata.getElementsByTagName('Profile')
 
-        # Get raw hexadecimal data from the block
-        points = block[self.profileIndex].childNodes[0].data
+        #if not self.__dict__.has_key('subdelays'):
+        if 'subdelays' not in self.__dict__:
+            self.dedisperse()
 
-        # The format of the hexadecimal data is 02X, i.e. hexadecimal value with 2 digits.
-        decimal_profile = []
-        index = 0 # The index at which hexadecimal conversion will be performed.
+        normprof = self.sumprof - min(self.sumprof)
 
-        while index < len(points):
-            if points[index] != "\n":
-                try:
-                    hex_value = points[index:index+2]
-                    #print "Hex value:\t", hex_value
-                    decimal_profile.append(int(hex_value,16)) # now the profile (shape, unscaled) is stored in dec_value
-                    #print "Decimal value:\t",int(hex_value,16)
-                    index = index+2 # Skip two characters to next hexadecimal number since format is 02X.
-                except ValueError:
-                    if points[index] =="\t":# There is a tab at the end of the xml data. So break the loop normally here.
-                        break
-                    else: # Unexpected error, report to user.
-                        print "Unexpected value error obtaining profile data for: ",self.cand
-                        break
+        s = normprof / mean(normprof)
+
+        if(self.debug):
+            plt.plot(s)
+            plt.title("Profile.")
+            plt.show()
+
+        return self.scale(s)
+
+    # ****************************************************************************************************
+
+    def scale(self,data):
+        """
+        Scales the profile data for pfd files so that it is in the range 0-255.
+        This is the same range used in the phcx files. So  by performing this scaling
+        the features for both type of candidates are directly comparable. Before it was
+        harder to determine if the features generated for pfd files were working correctly,
+        since the phcx features are our only point of reference.
+
+        Parameter:
+        data    -    the data to scale to within the 0-255 range.
+
+        Returns:
+        A new array with the data scaled to within the range [0,255].
+        """
+        min_=min(data)
+        max_=max(data)
+
+        newMin=0;
+        newMax=255
+
+        newData=[]
+
+        for n in range(len(data)):
+
+            value=data[n]
+            x = (newMin * (1-( (value-min_) /( max_-min_ )))) + (newMax * ( (value-min_) /( max_-min_ ) ))
+            newData.append(x)
+
+        return newData
+
+    # ****************************************************************************************************
+
+    def calc_varprof(self):
+        """
+        This function calculates the summed profile variance of the current pfd file.
+        Killed profiles are ignored. I have no idea what a killed profile is. But it
+        sounds fairly gruesome.
+        """
+        varprof = 0.0
+        for part in range(self.npart):
+            if part in self.killed_intervals: continue
+            for sub in range(self.nsub):
+                if sub in self.killed_subbands: continue
+                varprof += self.stats[part][sub][5] # foldstats prof_var
+        return varprof
+
+    # ****************************************************************************************************
+
+    def dedisperse(self, DM=None, interp=0):
+        """
+        Rotate (internally) the profiles so that they are de-dispersed
+        at a dispersion measure of DM.  Use FFT-based interpolation if
+        'interp' is non-zero (NOTE: It is off by default!).
+
+        """
+
+        if DM is None:
+            DM = self.bestdm
+
+        # Note:  Since TEMPO pler corrects observing frequencies, for
+        #        TOAs, at least, we need to de-disperse using topocentric
+        #        observing frequencies.
+        self.subdelays = self.fe.delay_from_DM(DM, self.subfreqs)
+        self.hifreqdelay = self.subdelays[-1]
+        self.subdelays = self.subdelays-self.hifreqdelay
+        delaybins = self.subdelays*self.binspersec - self.subdelays_bins
+
+        if interp:
+
+            new_subdelays_bins = delaybins
+
+            for ii in range(self.npart):
+                for jj in range(self.nsub):
+                    tmp_prof = self.profs[ii,jj,:]
+                    self.profs[ii,jj] = self.fe.fft_rotate(tmp_prof, delaybins[jj])
+
+            # Note: Since the rotation process slightly changes the values of the
+            # profs, we need to re-calculate the average profile value
+            self.avgprof = (self.profs/self.proflen).sum()
+
+        else:
+
+            new_subdelays_bins = floor(delaybins+0.5)
+
+            for ii in range(self.nsub):
+
+                rotbins = int(new_subdelays_bins[ii]) % self.proflen
+                if rotbins:  # i.e. if not zero
+                    subdata = self.profs[:,ii,:]
+                    self.profs[:,ii] = concatenate((subdata[:,rotbins:],subdata[:,:rotbins]), 1)
+
+        self.subdelays_bins += new_subdelays_bins
+        self.sumprof = self.profs.sum(0).sum(0)
+
+    # ******************************************************************************************
+
+    def plot_chi2_vs_DM(self, loDM, hiDM, N=100, interp=0):
+        """
+        Plot (and return) an array showing the reduced-chi^2 versus DM
+        (N DMs spanning loDM-hiDM). Use sinc_interpolation if 'interp' is non-zero.
+        """
+
+        # Sum the profiles in time
+        sumprofs = self.profs.sum(0)
+
+        if not interp:
+            profs = sumprofs
+        else:
+            profs = zeros(shape(sumprofs), dtype='d')
+
+        DMs = self.fe.span(loDM, hiDM, N)
+        chis = zeros(N, dtype='f')
+        subdelays_bins = self.subdelays_bins.copy()
+
+        for ii, DM in enumerate(DMs):
+
+            subdelays = self.fe.delay_from_DM(DM, self.barysubfreqs)
+            hifreqdelay = subdelays[-1]
+            subdelays = subdelays - hifreqdelay
+            delaybins = subdelays*self.binspersec - subdelays_bins
+
+            if interp:
+
+                interp_factor = 16
+                for jj in range(self.nsub):
+                    profs[jj] = self.fe.interp_rotate(sumprofs[jj], delaybins[jj],zoomfact=interp_factor)
+                # Note: Since the interpolation process slightly changes the values of the
+                # profs, we need to re-calculate the average profile value
+                avgprof = (profs/self.proflen).sum()
+
             else:
-                index = index+1
 
-        return decimal_profile
+                new_subdelays_bins = floor(delaybins+0.5)
+                for jj in range(self.nsub):
+                    profs[jj] = self.fe.rotate(profs[jj], int(new_subdelays_bins[jj]))
+                subdelays_bins += new_subdelays_bins
+                avgprof = self.avgprof
+
+            sumprof = profs.sum(0)
+            chis[ii] = self.calc_redchi2(prof=sumprof, avg=avgprof)
+
+        return (chis, DMs)
+
+    # ******************************************************************************************
+
+    def calc_redchi2(self, prof=None, avg=None, var=None):
+        """
+        Return the calculated reduced-chi^2 of the current summed profile.
+        """
+
+        if not self.__dict__.has_key('subdelays'):
+            self.dedisperse()
+
+        if prof is None:  prof = self.sumprof
+        if avg is None:  avg = self.avgprof
+        if var is None:  var = self.varprof
+        return ((prof-avg)**2.0/var).sum()/(len(prof)-1.0)
+
+    # ******************************************************************************************
+
+    def plot_subbands(self):
+        """
+        Plot the interval-summed profiles vs subband.  Restrict the bins
+        in the plot to the (low:high) slice defined by the phasebins option
+        if it is a tuple (low,high) instead of the string 'All'.
+        """
+        #if not self.__dict__.has_key('subdelays'):
+        if 'subdelays' not in self.__dict__:
+            self.dedisperse()
+
+        lo, hi = 0.0, self.proflen
+        profs = self.profs.sum(0)
+        lof = self.lofreq - 0.5*self.chan_wid
+        hif = lof + self.chan_wid*self.numchan
+
+        return profs
 
     # ****************************************************************************************************
 
     def isValid(self):
         """
-        Tests the xml data loaded from a phcx file for well-formedness, and invalid values.
-        To understand the code here its best to take a look at a phcx xml file, to see the
-        underlying structure. Alternatively I've generated a xml schema file which summarizes
-        the structure (should be in same folder as this file) called: phcx.xsd.xml .
+        Tests the data loaded from a pfd file.
 
         Parameters:
-        N/A
 
         Returns:
-        True if the xml data is well formed and valid, else false.
+        True if the data is well formed and valid, else false.
         """
 
-        # Read out data blocks.
-        profile_block = self.rawdata.getElementsByTagName('Profile')
-        subband_block = self.rawdata.getElementsByTagName('SubBands')
-        datablock_block = self.rawdata.getElementsByTagName('DataBlock')
-
-        # Test length of data in blocks. These should be equal to 2, since there
-        # are two profile blocks, two sub-band blocks and two data blocks in the
-        # xml file.
-
-        if ( len(profile_block) == len(subband_block) and len(datablock_block) == 1 ):
-
-            # There are two sections in the XML file:
-            #<Section name='FFT'>...</Section>
-            #<Section name='FFT-pdmpd'>...</Section>
-            #
-            # The first section (index=0) contains the raw FFT data, the second (index=1)
-            # contains data that has been period and DM searched using a separate tool.
-            # Mike Keith should know more about this tool called "pdmpd". Here
-            # data from both these sections is extracted to determine its length.
-
-            # From <Section name='FFT'>...</Section>
-            subband_points_fft   = subband_block[0].childNodes[0].data
-            datablock_points_fft = datablock_block[0].childNodes[0].data
-
-            # From <Section name='FFT-pdmpd'>...</Section>
-            profile_points_opt   = profile_block[1].childNodes[0].data
-            subband_points_opt   = subband_block[1].childNodes[0].data
-            datablock_points_opt = datablock_block[0].childNodes[0].data
-
-            # Note sure if the checks here are valid, i.e. if there are 99 profile points is that bad?
-            if ( len(profile_points_opt)>10) & (len(subband_points_opt)>1000) & (len(subband_points_fft)>1000) & (len(datablock_points_opt)>1000 ):
-
-                subband_bins = int(subband_block[1].getAttribute("nBins"))
-                subband_subbands = int(subband_block[1].getAttribute("nSub"))
-                dmindex = list(self.rawdata.getElementsByTagName('DmIndex')[0].childNodes[0].data)
-
-                # Stored here so call to len() made only once.
-                lengthDMIndex = len(dmindex) # This is the DM index from the <Section name='FFT'>...</Section> part of the xml file.
-
-                if (subband_bins == 32) & (subband_subbands == 128) & (lengthDMIndex > 100):
-
-                    # Now check for NaN values.
-                    bestWidth      = float(self.rawdata.getElementsByTagName('Width')[1].childNodes[0].data)
-                    bestSNR        = float(self.rawdata.getElementsByTagName('Snr')[1].childNodes[0].data)
-                    bestDM         = float(self.rawdata.getElementsByTagName('Dm')[1].childNodes[0].data)
-                    bestBaryPeriod = float(self.rawdata.getElementsByTagName('BaryPeriod')[1].childNodes[0].data)
-
-                    if (bestWidth != "nan") & (bestSNR != "nan") & (bestDM != "nan") & (bestBaryPeriod != "nan"):
-                        return True
-                    else:
-                        print "\tPHCX SKA SA check 4 failed, NaN's present in: ",self.cand
-
-                        # Extra debugging info for anybody encountering errors.
-                        if (bestWidth != "nan") :
-                            self.out("\t\"Width\" value found in <Section name='FFT-pdmpd'>...</> is NaN in: ",self.cand)
-                        if (bestSNR != "nan") :
-                            self.out("\t\"Snr\" value found in <Section name='FFT-pdmpd'>...</> is NaN in: ",self.cand)
-                        if (bestDM != "nan"):
-                            self.out("\t\"Dm\" value found in <Section name='FFT-pdmpd'>...</> is NaN in: ",self.cand)
-                        if (bestBaryPeriod != "nan"):
-                            self.out("\t\"BaryPeriod\" value found in <Section name='FFT-pdmpd'>...</> is NaN in: ",self.cand)
-
-                        return False
-                else:
-                    self.out("\tPHCX SKA SA check 3 failed, wrong number of bins, sub-bands in: ",self.cand)
-
-                    # Extra debugging info for anybody encountering errors.
-                    # Fix here...
-                    if(subband_bins!=32):
-                        print "\tNumber of sub-band bins != 32 there are instead ",subband_bins, " in: ",self.cand
-                    if(subband_subbands!=128):
-                        print "\tNumber of sub-bands != 128 there are instead ",subband_subbands, " in: ",self.cand
-                    if(lengthDMIndex<100):
-                        print "\tNumber of DM indexes < 100 there are instead ",lengthDMIndex, " in: ",self.cand
-
-                    return False
-            else:
-                print "\tPHCX SKA SA check 2 failed, not enough profile points, sub-band points in: ",self.cand
-                print "\tPoints in <Section name='FFT'>...</>"
-                print "\tSub-band points: ",len(subband_points_fft)," Data block points: ", len(datablock_points_fft)
-                print "\tPoints in <Section name='FFT-pdmpd'>...</>"
-                print "\tProfile points: ",len(profile_points_opt)," Sub-band points: ",len(subband_points_opt)," Data block points: ", len(datablock_points_opt)
-                return False
+        # These are only basic checks, more in depth checks should be implemented
+        # by someone more familiar with the pfd file format.
+        if(self.proflen > 0 and self.numchan > 0):
+            return True
         else:
-            self.out("\tPHCX SKA SA check 1 failed, profile, sub-band and data blocks of unequal size in: ",self.cand)
             return False
 
     # ****************************************************************************************************
 
     def computeFeatures(self,feature_type):
         """
-        Builds the features using the PFDOperations.py file. Returns the features.
+        Builds the features using FeatureExtractor.py and PFDFeatureExtractor.py
+        source files. Returns the features.
 
         Parameters:
         type               -    the type of features to generate.
@@ -488,7 +680,6 @@ class PHCXSKASA(Utilities.Utilities):
 
         # Get features 1-4
         try:
-
             sin_fit = self.fe.getSinusoidFittings(self.profile)
             # Add first features.
             self.features.append(float(sin_fit[0])) # Feature 1.  Chi-Squared value for sine fit to raw profile.
@@ -497,10 +688,10 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(float(sin_fit[3])) # Feature 4.  Sum over residuals.
 
             if(self.debug==True):
-                print "\nFeature 1. Chi-Squared value for sine fit to raw profile = ",sin_fit[0]
-                print "Feature 2. Chi-Squared value for sine-squared fit to amended profile = ",sin_fit[1]
-                print "Feature 3. Difference between maxima = ",sin_fit[2]
-                print "Feature 4. Sum over residuals = ",sin_fit[3]
+                print ("\nFeature 1. Chi-Squared value for sine fit to raw profile = ",sin_fit[0])
+                print ("Feature 2. Chi-Squared value for sine-squared fit to amended profile = ",sin_fit[1])
+                print ("Feature 3. Difference between maxima = ",sin_fit[2])
+                print ("Feature 4. Sum over residuals = ",sin_fit[3])
 
         # Get features 5-11
             guassian_fit = self.fe.getGaussianFittings(self.profile)
@@ -514,16 +705,17 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(float(guassian_fit[6]))# Feature 11. Chi squared value from double Gaussian fit to pulse profile.
 
             if(self.debug==True):
-                print "\nFeature 5. Distance between expectation values of Gaussian and fixed Gaussian fits to profile histogram = ", guassian_fit[0]
-                print "Feature 6. Ratio of the maximum values of Gaussian and fixed Gaussian fits to profile histogram = ",guassian_fit[1]
-                print "Feature 7. Distance between expectation values of derivative histogram and profile histogram. = ",guassian_fit[2]
-                print "Feature 8. Full-width-half-maximum (FWHM) of Gaussian fit to pulse profile = ", guassian_fit[3]
-                print "Feature 9. Chi squared value from Gaussian fit to pulse profile = ",guassian_fit[4]
-                print "Feature 10. Smallest FWHM of double-Gaussian fit to pulse profile = ", guassian_fit[5]
-                print "Feature 11. Chi squared value from double Gaussian fit to pulse profile = ", guassian_fit[6]
+                print ("\nFeature 5. Distance between expectation values of Gaussian and fixed Gaussian fits to profile histogram = ", guassian_fit[0])
+                print ("Feature 6. Ratio of the maximum values of Gaussian and fixed Gaussian fits to profile histogram = ",guassian_fit[1])
+                print ("Feature 7. Distance between expectation values of derivative histogram and profile histogram. = ",guassian_fit[2])
+                print ("Feature 8. Full-width-half-maximum (FWHM) of Gaussian fit to pulse profile = ", guassian_fit[3])
+                print ("Feature 9. Chi squared value from Gaussian fit to pulse profile = ",guassian_fit[4])
+                print ("Feature 10. Smallest FWHM of double-Gaussian fit to pulse profile = ", guassian_fit[5])
+                print ("Feature 11. Chi squared value from double Gaussian fit to pulse profile = ", guassian_fit[6])
+
 
         # Get features 12-15
-            candidateParameters = self.fe.getCandidateParameters(self.rawdata,self.profileIndex)
+            candidateParameters = self.fe.getCandidateParameters(self)
 
             self.features.append(float(candidateParameters[0]))# Feature 12. Best period.
             self.features.append(self.filterFeature(13,float(candidateParameters[1])))# Feature 13. Best S/N value.
@@ -531,13 +723,13 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(float(candidateParameters[3]))# Feature 15. Best pulse width.
 
             if(self.debug==True):
-                print "\nFeature 12. Best period = "         , candidateParameters[0]
-                print "Feature 13. Best S/N value = "        , candidateParameters[1], " Filtered value = ", self.filterFeature(13,float(candidateParameters[1]))
-                print "Feature 14. Best DM value = "         , candidateParameters[2], " Filtered value = ", self.filterFeature(14,float(candidateParameters[2]))
-                print "Feature 15. Best pulse width = "      , candidateParameters[3]
+                print ("\nFeature 12. Best period = "         , candidateParameters[0])
+                print ("Feature 13. Best S/N value = "        , candidateParameters[1], " Filtered value = ", self.filterFeature(13,float(candidateParameters[1])))
+                print ("Feature 14. Best DM value = "         , candidateParameters[2], " Filtered value = ", self.filterFeature(14,float(candidateParameters[2])))
+                print ("Feature 15. Best pulse width = "      , candidateParameters[3])
 
         # Get features 16-19
-            DMCurveFitting = self.fe.getDMFittings(self.rawdata,self.profileIndex)
+            DMCurveFitting = self.fe.getDMFittings(self)
 
             self.features.append(float(DMCurveFitting[0]))# Feature 16. SNR / SQRT( (P-W)/W ).
             self.features.append(float(DMCurveFitting[1]))# Feature 17. Difference between fitting factor, Prop, and 1.
@@ -545,26 +737,27 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(float(DMCurveFitting[3]))# Feature 19. Chi squared value from DM curve fit.
 
             if(self.debug==True):
-                print "\nFeature 16. SNR / SQRT( (P-W) / W ) = " , DMCurveFitting[0]
-                print "Feature 17. Difference between fitting factor, Prop, and 1 = " , DMCurveFitting[1]
-                print "Feature 18. Difference between best DM value and optimised DM value from fit, mod(DMfit - DMbest) = ", DMCurveFitting[2], " Filtered value = ", self.filterFeature(18,float(DMCurveFitting[2]))
-                print "Feature 19. Chi squared value from DM curve fit = " , DMCurveFitting[3]
+                print ("\nFeature 16. SNR / SQRT( (P-W) / W ) = " , DMCurveFitting[0])
+                print ("Feature 17. Difference between fitting factor, Prop, and 1 = " , DMCurveFitting[1])
+                print ("Feature 18. Difference between best DM value and optimised DM value from fit, mod(DMfit - DMbest) = ", DMCurveFitting[2], " Filtered value = ", self.filterFeature(18,float(DMCurveFitting[2])))
+                print ("Feature 19. Chi squared value from DM curve fit = " , DMCurveFitting[3])
+
 
         # Get features 20-22
-            subbandFeatures = self.fe.getSubbandParameters(self.profileIndex,self.rawdata,self.profile)
+            subbandFeatures = self.fe.getSubbandParameters(self,self.profile)
 
             self.features.append(float(subbandFeatures[0]))# Feature 20. RMS of peak positions in all sub-bands.
             self.features.append(float(subbandFeatures[1]))# Feature 21. Average correlation coefficient for each pair of sub-bands.
             self.features.append(float(subbandFeatures[2]))# Feature 22. Sum of correlation coefficients between sub-bands and profile.
 
             if(self.debug==True):
-                print "\nFeature 20. RMS of peak positions in all sub-bands = " , subbandFeatures[0]
-                print "Feature 21. Average correlation coefficient for each pair of sub-bands = " , subbandFeatures[1]
-                print "Feature 22. Sum of correlation coefficients between sub-bands and profile = " , subbandFeatures[2]
+                print ("\nFeature 20. RMS of peak positions in all sub-bands = " , subbandFeatures[0])
+                print ("Feature 21. Average correlation coefficient for each pair of sub-bands = " , subbandFeatures[1])
+                print ("Feature 22. Sum of correlation coefficients between sub-bands and profile = " , subbandFeatures[2])
 
         except Exception as e: # catch *all* exceptions
-            print "Error computing features\n\t", sys.exc_info()[0]
-            print self.format_exception(e)
+            print ("Error computing features \n\t", sys.exc_info()[0])
+            print (self.format_exception(e))
             raise Exception("Exception computing 22 features from Thornton, PhD Thesis, Univ. Manchester, 2013.")
 
         return self.features
@@ -644,12 +837,12 @@ class PHCXSKASA(Utilities.Utilities):
         Returns:
         An array of 8 candidate features as floating point values.
         """
-
         try:
 
             # First compute profile stats.
-            bins =[]
-            for intensity in self.profile:
+            bins = []
+
+            for intensity in self.getprofile():# call to self.getprofile() returns profile scaled within the range [0,255].
                 bins.append(float(intensity))
 
             mn = mean(bins)
@@ -658,10 +851,10 @@ class PHCXSKASA(Utilities.Utilities):
             kurt = self.fe.excess_kurtosis(bins)
 
             if(self.debug==True):
-                print "\nFeature 1. Mean of the integrated (folded) pulse profile = ",            str(mn)
-                print "Feature 2. Standard deviation of the integrated (folded) pulse profile = ",str(stdev)
-                print "Feature 3. Skewness of the integrated (folded) pulse profile = ",          str(skw)
-                print "Feature 4. Excess Kurtosis of the integrated (folded) pulse profile = ",   str(kurt)
+                print ("\nFeature 1. Mean of the integrated (folded) pulse profile = ",            str(mn))
+                print ("Feature 2. Standard deviation of the integrated (folded) pulse profile = ",str(stdev))
+                print ("Feature 3. Skewness of the integrated (folded) pulse profile = ",          str(skw))
+                print ("Feature 4. Excess Kurtosis of the integrated (folded) pulse profile = ",   str(kurt))
 
             self.features.append(mn)
             self.features.append(stdev)
@@ -669,8 +862,8 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(kurt)
 
             # Now compute DM-SNR curve stats.
-            bins=[]
-            bins=self.fe.getDMCurveData(self.rawdata,self.profileIndex)
+            bins =[]
+            bins = self.fe.getDMCurveData(self)
 
             mn = mean(bins)
             stdev = std(bins)
@@ -678,10 +871,10 @@ class PHCXSKASA(Utilities.Utilities):
             kurt = self.fe.excess_kurtosis(bins)
 
             if(self.debug==True):
-                print "\nFeature 5. Mean of the integrated SNR-DM Curve = ", str(mn)
-                print "Feature 6. Standard deviation of the SNR-DM Curve = ",str(stdev)
-                print "Feature 7. Skewness of the SNR-DM Curve = ",          str(skw)
-                print "Feature 8. Excess Kurtosis of the SNR-DM Curve = ",   str(kurt)
+                print ("\nFeature 5. Mean of the integrated SNR-DM Curve = ", str(mn))
+                print ("Feature 6. Standard deviation of the SNR-DM Curve = ",str(stdev))
+                print ("Feature 7. Skewness of the SNR-DM Curve = ",          str(skw))
+                print ("Feature 8. Excess Kurtosis of the SNR-DM Curve = ",   str(kurt))
 
             self.features.append(mn)
             self.features.append(stdev)
@@ -689,10 +882,9 @@ class PHCXSKASA(Utilities.Utilities):
             self.features.append(kurt)
 
         except Exception as e: # catch *all* exceptions
-            print "Error getting features from PHCX file\n\t", sys.exc_info()[0]
-            print self.format_exception(e)
+            print ("Error getting features from PFD file\n\t", sys.exc_info()[0])
+            print (self.format_exception(e))
             raise Exception("Exception computing 8 features from Lyon et al.,2015.")
-            return []
 
         return self.features
 
@@ -700,7 +892,7 @@ class PHCXSKASA(Utilities.Utilities):
 
     def computeType_7(self):
         """
-        Obtain integrated (folded) profile data.
+        Obtain integrated (folded profile data.
 
         Parameters:
         N/A
@@ -726,21 +918,23 @@ class PHCXSKASA(Utilities.Utilities):
         An array of data.
         """
 
-        return self.fe.getDMCurveData(self.rawdata,self.profileIndex)
+        curve = self.fe.getDMCurveData(self)
+
+        return curve
 
     # ******************************************************************************************
 
     def filterFeature(self,s,value):
         """
-        Filters a returned Feature value, so that if it is outside an expected range,
-        then it is corrected, and the corrected version returned.
+        Filters a return feature value, so that if it is outside an expected range,
+        then the feature is corrected, and the corrected version returned.
 
         Parameter:
         s        -    index of the feature, i.e. 1,2,3,...,n.
         value    -    the value of the feature.
 
         Return:
-        The Feature value if it is valid, else a formatted version of the Feature.
+        The feature value if it is valid, else a formatted version of the feature.
         """
 
         if(s==13):# SNR

@@ -38,7 +38,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 # Custom file Imports:
-import Utilities
+from pfd_extractor import Utilities
 
 # ****************************************************************************************************
 #
@@ -370,14 +370,14 @@ class FeatureExtractor(Utilities.Utilities):
             ssTot = ((yData-yData.mean())**2).sum()
             rsquared = 1-(ssErr/ssTot )
             
-            print("\n\tSine fit to Pulse profile statistics:")
-            print("\tStandard Error: ", ssErr)
-            print("\tTotal Error: ", ssTot)
-            print("\tR-Squared: ", rsquared)
-            print("\tAmplitude: ",amplitude)
-            print("\tFrequency: ",str(leastSquaresParameters[0]))
-            print("\tPhi: ",str(leastSquaresParameters[1]))
-            print("\tBackground: ",background)
+            print ("\n\tSine fit to Pulse profile statistics:")
+            print ("\tStandard Error: ", ssErr)
+            print ("\tTotal Error: ", ssTot)
+            print ("\tR-Squared: ", rsquared)
+            print ("\tAmplitude: ",amplitude)
+            print ("\tFrequency: ",str(leastSquaresParameters[0]))
+            print ("\tPhi: ",str(leastSquaresParameters[1]))
+            print ("\tBackground: ",background)
             plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine fit to Profile")
             plt.show()
@@ -464,13 +464,13 @@ class FeatureExtractor(Utilities.Utilities):
             ssTot = ((yData-mean(yData))**2).sum()
             rsquared = 1-(ssErr/ssTot )
             
-            print("\n\tSine Squared fit to Pulse profile statistics:")
-            print("\tStandard Error: ", ssErr)
-            print("\tTotal Error: ", ssTot)
-            print("\tR-Squared: ", rsquared)
-            print("\tAmplitude: ",amplitude)
+            print ("\n\tSine Squared fit to Pulse profile statistics:")
+            print ("\tStandard Error: ", ssErr)
+            print ("\tTotal Error: ", ssTot)
+            print ("\tR-Squared: ", rsquared)
+            print ("\tAmplitude: ",amplitude)
             print ("\tFrequency: ",str(leastSquaresParameters[0]))
-            print("\tPhi: ",str(leastSquaresParameters[1]))
+            print ("\tPhi: ",str(leastSquaresParameters[1]))
             plt.plot(xData,yData,'o', xData, __evaluate(xData, leastSquaresParameters,amplitude,background))
             plt.title("Sine Squared fit to Profile")
             plt.show()
@@ -550,10 +550,10 @@ class FeatureExtractor(Utilities.Utilities):
         derivativeHistogram_sigma, derivativeHistogram_expect, derivativeHistogram_maximum = gaussianFitToDerivativeHistogram[0]
         
         if(self.debug==True):
-            print("\n\tGaussian fit to Derivative Histogram details: ")
-            print("\tSigma of derivative histogram = " , derivativeHistogram_sigma)
-            print("\tMu of derivative histogram = "    , derivativeHistogram_expect)
-            print("\tMax of derivative histogram = "   , derivativeHistogram_maximum)
+            print ("\n\tGaussian fit to Derivative Histogram details: " )
+            print ("\tSigma of derivative histogram = " , derivativeHistogram_sigma)
+            print ("\tMu of derivative histogram = "    , derivativeHistogram_expect)
+            print ("\tMax of derivative histogram = "   , derivativeHistogram_maximum)
         
             # View histogram - for debugging only... uncomment matlibplot import at top if needed.
             
@@ -571,10 +571,10 @@ class FeatureExtractor(Utilities.Utilities):
         profileHistogram_sigma, profileHistogram_expect, profileHistogram_maximum = gaussianFitToProfileHistogram[0]
         
         if(self.debug==True):
-            print("\n\tGaussian fit to Profile Histogram details: ")
-            print("\tSigma of profile histogram = " , profileHistogram_sigma)
-            print("\tMu of profile histogram = "    , profileHistogram_expect)
-            print("\tMax of profile histogram = "   , profileHistogram_maximum)
+            print ("\n\tGaussian fit to Profile Histogram details: " )
+            print ("\tSigma of profile histogram = " , profileHistogram_sigma)
+            print ("\tMu of profile histogram = "    , profileHistogram_expect)
+            print ("\tMax of profile histogram = "   , profileHistogram_maximum)
             
             # View histogram - for debugging only... uncomment matlibplot import at top if needed.
             
@@ -594,12 +594,12 @@ class FeatureExtractor(Utilities.Utilities):
         gf_ProfileHistogram_fixed_xmax = gf_ProfileHistogram_fixed_Expect[4]
         
         if(self.debug==True):
-            print("\n\tGaussian fits to Profile Historgram with fixed Mu details:" )
-            print("\tSigma of Gaussian fit to Profile Historgram = "         , gf_ProfileHistogram_fixed_sigma)
-            print("\tMax of Gaussian fit to Profile Historgram = "           , gf_ProfileHistogram_fixed_maximum)
-            print("\tFWHM of Gaussian fit to Profile Historgram = "          , gf_ProfileHistogram_fixed_fwhm)
-            print("\tChi-squared of Gaussian fit to Profile Historgram = "   , gf_ProfileHistogram_fixed_chi)
-            print("\txmax of Gaussian fit to Profile Historgram = "  )
+            print ("\n\tGaussian fits to Profile Historgram with fixed Mu details:" )
+            print ("\tSigma of Gaussian fit to Profile Historgram = "         , gf_ProfileHistogram_fixed_sigma)
+            print ("\tMax of Gaussian fit to Profile Historgram = "           , gf_ProfileHistogram_fixed_maximum)
+            print ("\tFWHM of Gaussian fit to Profile Historgram = "          , gf_ProfileHistogram_fixed_fwhm)
+            print ("\tChi-squared of Gaussian fit to Profile Historgram = "   , gf_ProfileHistogram_fixed_chi)
+            print ("\txmax of Gaussian fit to Profile Historgram = "  )
         
         dexp_fix = abs(gf_ProfileHistogram_fixed_xmax - profileHistogram_expect)      # Feature 5.
         amp_fix =  abs( gf_ProfileHistogram_fixed_maximum / profileHistogram_maximum) # Feature 6.
@@ -1438,10 +1438,10 @@ class FeatureExtractor(Utilities.Utilities):
         nbins = ceil( rnge / binwidth )
         
         if(self.debug):
-            print("\tIQR: ",iqr)
-            print("\tBin Width: ",binwidth)
-            print("\tRange: ",rnge)
-            print("\tNumber of bins: ", nbins)
+            print ("\tIQR: ",iqr)
+            print ("\tBin Width: ",binwidth)
+            print ("\tRange: ",rnge)
+            print ("\tNumber of bins: ", nbins)
             
         return int(nbins)
     
