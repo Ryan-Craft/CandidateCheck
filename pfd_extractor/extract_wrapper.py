@@ -3,6 +3,7 @@ from astropy.time import Time
 import csv
 import sys
 from p_tqdm import p_map
+from numpy import array
 
 from pfd_extractor.PFDFile import PFD
 
@@ -22,9 +23,12 @@ def single_pfd_data_read(pfd_file):
 
     # Work out start and end time in GPS
     times = PFDObject.start_topo_MJDs
-    begin, end = Time([times[0], times[-1]], format='mjd') 
+    begin, end = Time([times[0], times[-1]], format='mjd')
+
+    PFDObject.computeFeatures(9)
+    sn = PFDObject.sn
     
-    return candidate_name, period, dm, ra, dec, int(begin.gps), int(end.gps)
+    return candidate_name, period, dm, sn, ra, dec, int(begin.gps), int(end.gps)
 
 def get_common_pfd_data(pfd_files):
     pfd_data = p_map(single_pfd_data_read, pfd_files)

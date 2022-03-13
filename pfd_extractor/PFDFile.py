@@ -507,8 +507,29 @@ class PFD(Utilities.Utilities):
             return self.computeType_7()
         elif(feature_type == 8):
             return self.computeType_8()
+        elif(feature_type == 9):
+            return self.compute_best_sn()
         else:
             raise Exception("Invalid features specified!")
+    # ****************************************************************************************************
+    def compute_best_sn(self):
+        """
+        Returns the best signal-to-noise value obtained for the candidate. Higher values desired.
+
+        Parameters:
+        N/A
+
+        Returns:
+        An array of 22 candidate features as floating point values.
+        """
+        candidateParameters = self.fe.getCandidateParameters(self)
+        # Feature 13. Best S/N value.
+        self.sn = self.filterFeature(13,float(candidateParameters[1]))
+
+        if(self.debug==True):
+            print ("Feature 13. Best S/N value = "        , candidateParameters[1], " Filtered value = ", self.filterFeature(13,float(candidateParameters[1])))
+
+        return self.sn
 
     # ****************************************************************************************************
 
